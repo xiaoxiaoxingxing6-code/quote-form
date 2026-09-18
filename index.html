@@ -257,7 +257,7 @@
       </div>
 
       <div class="field" id="field-name">
-        <label>您的姓名<span class="required">*</span><span class="hint hidden" id="nameHint">個人戶請填寫完整全名，不要填「陳先生」、「何小姐」這種稱呼方式</span></label>
+        <label>您的姓名<span class="required">*</span><span class="hint hidden" id="nameHint">個人戶請填寫完整全名</span></label>
         <input type="text" id="name" autocomplete="name" placeholder="請輸入您的姓名">
         <div class="error-text">請填寫姓名</div>
       </div>
@@ -310,6 +310,11 @@
         <label>送檢驗的產品「名稱」或產品類別<span class="required">*</span></label>
         <input type="text" id="productName" placeholder="請輸入產品名稱或類別">
         <div class="error-text">請填寫送檢驗的產品「名稱」或產品類別</div>
+      </div>
+
+      <div class="field" id="field-testItems">
+        <label>需要檢驗的項目<span class="hint">若尚未確定可先不填</span></label>
+        <textarea id="testItems" placeholder="請輸入想檢驗的項目（若不確定可留空）"></textarea>
       </div>
 
       <div class="field" id="field-message">
@@ -638,6 +643,7 @@
         email: document.getElementById('email').value.trim(),
         subject: document.getElementById('subject').value,
         productName: document.getElementById('productName').value.trim(),
+        testItems: document.getElementById('testItems').value.trim(),
         message: document.getElementById('message').value.trim(),
         subscribe: subscribe,
         subscribeCategories: subscribe === '訂閱' ? getCheckedValues('subscribeCategories').join('、') : '',
