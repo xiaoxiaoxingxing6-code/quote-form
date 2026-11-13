@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<!-- 台美檢驗建議單：放在公司 GitHub 表單 repo 的 advice/ 資料夾 -->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>台美檢驗建議單</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@700;900&display=swap">
+<style>
+/* Layout: 左邊「問診」3 題，右邊即時長出一張實驗室單據樣式的「檢驗建議單」；手機上問題在上、單據在下。 */
+:root {
+  --bg: #F5EFEC;
+  --paper: #FFFDFB;
+  --ink: #3A2318;
+  --muted: #7D6A60;
+  --line: #E7DAD3;
+  --rule: #D9C7BE;
+  --brown: #753F28;
+  --on-brown: #FFFDFB;
+  --pink: #ECAEB0;
+  --pink-soft: #F8E3E3;
+  --stamp: #C4545A;
+  --grey: #8A8380;
+  --font-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1B1412; --paper: #2A201C; --ink: #F3E6DF; --muted: #BFAAA0; --line: #3F312A; --rule: #54423A;
+    --brown: #E2A386; --on-brown: #241710; --pink: #E7A3A6; --pink-soft: #46302F; --stamp: #F08A8F; --grey: #A39A96; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1B1412; --paper: #2A201C; --ink: #F3E6DF; --muted: #BFAAA0; --line: #3F312A; --rule: #54423A;
+  --brown: #E2A386; --on-brown: #241710; --pink: #E7A3A6; --pink-soft: #46302F; --stamp: #F08A8F; --grey: #A39A96; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 20px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 20px; }
+a { color: var(--brown); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+
+/* 頁首 */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand img { width: 44px; height: auto; border-radius: 8px; background: #fff; padding: 3px; }
+.brand b { display: block; font-size: 13px; letter-spacing: .14em; color: var(--brown); }
+.brand span { font-size: 13px; color: var(--muted); }
+.seg { display: inline-flex; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+.seg a { text-decoration: none; padding: 7px 18px; border-radius: 999px; font-weight: 700; color: var(--muted); }
+.seg a[aria-current="page"] { background: var(--brown); color: var(--on-brown); }
+
+.grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px; align-items: start; }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* 問診 */
+.ask { display: flex; flex-direction: column; gap: 18px; }
+.ask h1 { font-family: var(--font-display); font-weight: 900; font-size: clamp(28px, 4vw, 38px); line-height: 1.25; margin: 0; text-wrap: balance; color: var(--brown); }
+.ask .lead { margin: 0; color: var(--muted); }
+.q { display: flex; flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px dashed var(--rule); }
+.q-head { display: flex; align-items: baseline; gap: 10px; }
+.q-no { font-family: var(--font-display); font-weight: 900; color: var(--pink); font-size: 22px; font-variant-numeric: tabular-nums; }
+.q h2 { font-size: 17px; margin: 0; font-weight: 900; }
+.q h2 small { font-weight: 500; color: var(--muted); font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--rule); background: var(--paper); border-radius: 10px; padding: 7px 13px; cursor: pointer; font-weight: 500; transition: background .15s, border-color .15s; }
+.chip:hover { border-color: var(--brown); }
+.chip[aria-pressed="true"] { background: var(--brown); border-color: var(--brown); color: var(--on-brown); font-weight: 700; }
+.chip[aria-pressed="true"]::before { content: "✓ "; }
+
+/* 建議單 */
+.sheet { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 1px 0 var(--line), 0 18px 40px -24px rgba(80, 40, 20, .35); position: relative; overflow: hidden; }
+.sheet::before { content: ""; display: block; height: 8px; background: var(--pink); }
+.sheet-in { padding: 26px clamp(18px, 3.5vw, 40px) 30px; display: flex; flex-direction: column; gap: 22px; }
+.sh-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+.sh-title { font-family: var(--font-display); font-weight: 900; font-size: clamp(26px, 3.6vw, 34px); letter-spacing: .12em; margin: 0; line-height: 1.2; }
+.sh-title small { display: block; font-family: var(--font-body); font-size: 12px; letter-spacing: .2em; color: var(--muted); font-weight: 700; }
+.sh-meta { text-align: right; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1.7; }
+.example { background: var(--pink-soft); border-radius: 6px; padding: 8px 12px; font-size: 13px; margin: 0; }
+
+.fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--rule); border-radius: 4px; }
+.fields > div { padding: 8px 12px; border-left: 1px solid var(--rule); min-width: 0; }
+.fields > div:first-child { border-left: 0; }
+.fields dt { font-size: 11px; letter-spacing: .12em; color: var(--muted); font-weight: 700; }
+.fields dd { margin: 0; font-weight: 700; }
+.fields dd.empty { color: var(--rule); font-weight: 500; }
+@media (max-width: 560px) { .fields { grid-template-columns: minmax(0, 1fr); } .fields > div { border-left: 0; border-top: 1px solid var(--rule); } .fields > div:first-child { border-top: 0; } }
+
+.sec { display: flex; flex-direction: column; gap: 10px; }
+.sec h3 { margin: 0; font-size: 14px; letter-spacing: .1em; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.sec h3 span { font-weight: 500; color: var(--muted); font-size: 12px; letter-spacing: 0; }
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-size: 11px; letter-spacing: .12em; color: var(--muted); font-weight: 700; padding: 6px 8px; border-bottom: 1px solid var(--ink); white-space: nowrap; }
+td { padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.no { width: 2.2em; color: var(--muted); font-variant-numeric: tabular-nums; }
+td.name { font-weight: 900; white-space: nowrap; }
+td.why { white-space: nowrap; }
+td.why span { display: inline-block; background: var(--pink-soft); border-radius: 4px; padding: 1px 8px; font-size: 12px; font-weight: 700; }
+td small { color: var(--muted); }
+tr.kit td { background: var(--pink-soft); }
+@media (max-width: 560px) { td.name { white-space: normal; } thead { display: none; } tr { display: grid; grid-template-columns: 2.2em minmax(0, 1fr); } td { border-bottom: 0; padding: 4px 6px; } td.no { grid-row: span 3; padding-top: 10px; } tr { border-bottom: 1px solid var(--line); padding-block: 6px; } td.why { white-space: normal; } }
+.new { animation: ink .9s ease-out; }
+@keyframes ink { from { background: var(--pink-soft); } to { background: transparent; } }
+
+.laws { display: flex; flex-direction: column; }
+.law { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 14px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.law a { font-weight: 700; text-decoration: none; color: var(--ink); }
+.law a:hover { text-decoration: underline; }
+.law .date { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; }
+.law q { grid-column: 1 / -1; font-size: 13px; color: var(--muted); quotes: "「" "」"; }
+@media (max-width: 560px) { .law { grid-template-columns: minmax(0, 1fr); } .law .date { text-align: left; } }
+.notes { margin: 0; padding-left: 1.1em; font-size: 13px; color: var(--muted); }
+.svc { display: flex; flex-wrap: wrap; gap: 8px; }
+.svc span { border: 1.5px solid var(--brown); color: var(--brown); border-radius: 999px; padding: 3px 12px; font-weight: 700; font-size: 13px; }
+#body { display: flex; flex-direction: column; gap: 26px; }
+@media (min-width: 901px) { .ask { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); } }
+@media (max-width: 560px) { .sh-meta { text-align: left; } }
+.pending { color: var(--muted); border: 1.5px dashed var(--rule); border-radius: 6px; padding: 18px; text-align: center; }
+
+.foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: end; border-top: 2px solid var(--ink); padding-top: 14px; }
+.foot p { margin: 0; font-size: 12px; color: var(--muted); }
+.stamp { width: 112px; height: 112px; border: 3px solid var(--stamp); border-radius: 50%; color: var(--stamp); display: grid; place-items: center; text-align: center; transform: rotate(-12deg); font-weight: 900; line-height: 1.15; position: relative; opacity: .9; }
+.stamp::after { content: ""; position: absolute; inset: 5px; border: 1px solid var(--stamp); border-radius: 50%; }
+.stamp b { display: block; font-size: 10px; letter-spacing: .18em; }
+.stamp span { display: block; font-family: var(--font-display); font-size: 19px; letter-spacing: .1em; }
+.stamp.press { animation: press .45s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes press { from { transform: rotate(-12deg) scale(1.6); opacity: 0; } to { transform: rotate(-12deg) scale(1); opacity: .9; } }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { border-radius: 10px; padding: 11px 20px; font-weight: 900; text-decoration: none; cursor: pointer; border: 1.5px solid var(--brown); background: transparent; color: var(--brown); }
+.btn.primary { background: var(--brown); color: var(--on-brown); }
+.howto { flex-basis: 100%; background: var(--bg); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--muted); }
+.howto b { color: var(--ink); }
+.howto ol { margin: 6px 0 8px; padding-left: 1.3em; }
+.howto summary { cursor: pointer; color: var(--brown); font-weight: 700; }
+.howto details b { display: block; margin-top: 8px; color: var(--ink); }
+.howto pre { white-space: pre-wrap; font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; margin: 8px 0 0; max-height: 260px; overflow: auto; }
+.toast { font-size: 13px; color: var(--muted); min-height: 1.4em; }
+.toast textarea { width: 100%; margin-top: 6px; font: inherit; }
+
+.links { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 13px; color: var(--muted); }
+.links a { color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .new, .stamp.press { animation: none; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><img src="data:image/png;base64,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" alt="SUPERLAB 台美檢驗"><div><b>SUPERLAB 台美檢驗</b><span>衛福部食藥署（TFDA）認可第三方檢驗機構</span></div></div>
+    <nav class="seg" aria-label="選擇產業"><a href="#food" id="tab-food">食品</a><a href="#cosmetics" id="tab-cosmetics">化粧品</a></nav>
+  </header>
+
+  <div class="grid">
+    <section class="ask" aria-labelledby="ask-title">
+      <h1 id="ask-title">回答 3 題，<br>拿一張您的檢驗建議單</h1>
+      <p class="lead">選出最接近您的情況，建議單會即時列出常見檢驗類別、法規依據與台美可協助的服務。</p>
+      <div id="qs"></div>
+    </section>
+
+    <article class="sheet" aria-labelledby="sh-title">
+      <div class="sheet-in">
+        <div class="sh-head">
+          <h2 class="sh-title" id="sh-title"><small>SUPERLAB · TEST ADVICE</small>檢驗建議單</h2>
+          <div class="sh-meta"><div id="sh-kind"></div><div>建議日期 <span id="sh-date"></span></div><div>法規查核 2026-11-04</div></div>
+        </div>
+        <p class="example" id="example" hidden>目前顯示的是範例回答。點選 3 題的選項，改成您自己的情況。</p>
+        <dl class="fields" id="fields"></dl>
+        <div id="body"></div>
+        <div class="foot">
+          <p>本建議單依您的回答，列出常見檢驗類別與法規依據，供送驗前參考。實際測項與報價，由台美專人依產品照片、成分或材質、用途評估。法規名稱與修正日期依全國法規資料庫及衛福部公告。</p>
+          <div class="stamp" id="stamp" hidden aria-label="台美檢驗顧問建議"><div><b>SUPERLAB</b><span>台美檢驗</span><b>顧問建議</b></div></div>
+        </div>
+        <div class="actions" id="actions"></div>
+        <div class="toast" id="toast" role="status"></div>
+      </div>
+    </article>
+  </div>
+
+  <footer class="links">
+    <a href="https://youtu.be/z21yFOAnMAc" target="_blank" rel="noopener">送驗流程影片 ↗</a>
+    <a href="https://www.superlab.com.tw/specimen-collection-method-description/" target="_blank" rel="noopener">檢體採檢方法 ↗</a>
+    <a id="full" href="#" target="_blank" rel="noopener">官網完整測項 ↗</a>
+    <span>來電洽詢 02-2298-1887</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+'use strict';
+const LAW = 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=';
+const SUB = 'https://law.moj.gov.tw/LawClass/LawSlaveAll.aspx?pcode=';
+const QUOTE = 'https://www.superlab.com.tw/connection/';
+const SITE = 'https://www.superlab.com.tw';
+
+/* ---------- 法規（名稱、最新修正日期依全國法規資料庫，查核 2026-11-04） ---------- */
+const R = {
+  f_law: { name: '食品安全衛生管理法', date: '108.06.12 修正', url: LAW + 'L0040001' },
+  f_a7: { name: '食品安全衛生管理法 第 7 條', date: '自主管理與檢驗', url: LAW + 'L0040001', quote: '食品業者應將其產品原材料、半成品或成品，自行或送交其他檢驗機關（構）、法人或團體檢驗。' },
+  f_a8: { name: '食品安全衛生管理法 第 8 條', date: '良好衛生規範', url: LAW + 'L0040001', quote: '食品業者之從業人員、作業場所、設施衛生管理及其品保制度，均應符合食品之良好衛生規範準則。' },
+  f_a17: { name: '食品安全衛生管理法 第 17 條', date: '衛生安全及品質標準', url: LAW + 'L0040001', quote: '販賣之食品、食品用洗潔劑及其器具、容器或包裝，應符合衛生安全及品質之標準。' },
+  f_a22: { name: '食品安全衛生管理法 第 22 條', date: '標示事項（含營養標示）', url: LAW + 'L0040001', quote: '食品及食品原料之容器或外包裝，應以中文及通用符號，明顯標示下列事項。' },
+  f_ghp: { name: '食品良好衛生規範準則', date: '114.06.04 修正', url: SUB + 'L0040001' },
+  f_micro: { name: '食品中微生物衛生標準', date: '109.10.06 修正', url: SUB + 'L0040001' },
+  f_toxin: { name: '食品中污染物質及毒素衛生標準', date: '113.11.28 修正', url: SUB + 'L0040001' },
+  f_add: { name: '食品添加物使用範圍及限量暨規格標準', date: '114.05.07 修正', url: SUB + 'L0040001' },
+  f_pest: { name: '農藥殘留容許量標準', date: '115.04.21 修正', url: SUB + 'L0040001' },
+  f_apest: { name: '動物產品中農藥殘留容許量標準', date: '114.11.26 修正', url: SUB + 'L0040001' },
+  f_vet: { name: '動物用藥殘留標準', date: '112.07.13 修正', url: SUB + 'L0040001' },
+  f_pack: { name: '食品器具容器包裝衛生標準', date: '112.01.11 修正', url: SUB + 'L0040001' },
+  f_ad: { name: '食品及相關產品標示宣傳廣告涉及不實誇張易生誤解或醫療效能認定準則', date: '113.05.08 修正', url: SUB + 'L0040001' },
+  f_reg: { name: '食品與相關產品查驗登記及許可文件管理辦法', date: '112.11.30 修正', url: SUB + 'L0040001' },
+  f_import: { name: '食品及相關產品輸入查驗辦法', date: '114.08.21 修正', url: SUB + 'L0040001' },
+
+  c_law: { name: '化粧品衛生安全管理法', date: '107.05.02 修正', url: LAW + 'L0030013' },
+  c_a4: { name: '化粧品衛生安全管理法 第 4 條', date: '產品登錄與產品資訊檔案', url: LAW + 'L0030013', quote: '於化粧品供應、販賣、贈送、公開陳列或提供消費者試用前，完成產品登錄及建立產品資訊檔案。' },
+  c_a6: { name: '化粧品衛生安全管理法 第 6 條', date: '禁用與限用成分', url: LAW + 'L0030013', quote: '化粧品不得含有汞、鉛或其他經中央主管機關公告禁止使用之成分。' },
+  c_a8: { name: '化粧品衛生安全管理法 第 8 條', date: '製造場所', url: LAW + 'L0030013', quote: '經中央主管機關公告之化粧品種類，其化粧品製造場所應符合化粧品優良製造準則。' },
+  c_a10: { name: '化粧品衛生安全管理法 第 10 條', date: '標示、宣傳及廣告', url: LAW + 'L0030013', quote: '化粧品不得為醫療效能之標示、宣傳或廣告。' },
+  c_pif: { name: '化粧品產品資訊檔案管理辦法 第 3 條', date: '111.06.16 修正', url: LAW + 'L0030098', quote: '十一、產品安定性試驗報告。十二、微生物檢測報告。十三、防腐效能試驗報告。十四、功能評估佐證資料。' },
+  c_pifdate: { name: '應建立產品資訊檔案之化粧品種類及實施日期', date: '衛授食字第1131604608號（113.06.26 公告）', url: 'https://www.fda.gov.tw/tc/newsContent.aspx?cid=3&id=30614' },
+  c_reg: { name: '化粧品產品登錄辦法', date: '108.05.30', url: SUB + 'L0030013' },
+  c_gmp: { name: '化粧品優良製造準則', date: '108.08.13', url: SUB + 'L0030013' },
+  c_ad: { name: '化粧品標示宣傳廣告涉及虛偽誇大或醫療效能認定準則', date: '108.06.04', url: SUB + 'L0030013' },
+  c_border: { name: '輸入化粧品邊境查驗辦法', date: '108.06.27', url: SUB + 'L0030013' },
+};
+
+/* ---------- 台美檢驗測項（依官網食品、化粧品檢驗頁） ---------- */
+const T = {
+  micro: ['微生物檢驗', '總生菌數、大腸桿菌群、大腸桿菌、沙門氏桿菌、李斯特菌、金黃色葡萄球菌、黴菌及酵母菌等'],
+  metal: ['重金屬檢驗', '砷、鉛、鎘、汞、銅、重金屬（以鉛計）等'],
+  water: ['包裝飲用水重金屬檢驗', '砷、鉛、鎘、汞、銅、鋅等'],
+  additive: ['食品添加物檢驗', '防腐劑、抗氧化劑、著色劑、甜味劑、過氧化氫、二氧化硫等'],
+  gmo: ['基改食品類檢驗', '玉米 10 項、黃豆 13 項定性／定量等'],
+  pest: ['農藥殘留檢驗', '410 項、411 項（含二硫代胺基甲酸鹽類）等'],
+  myco: ['真菌毒素檢驗', '總黃麴毒素、黃麴毒素、赭麴毒素、棒麴毒素、橘黴素等'],
+  vet: ['動物用藥檢驗', '48 項動物用藥、乙型受體素、萊克多巴胺、四環黴素、硝基呋喃代謝物等'],
+  nutri: ['營養標示檢驗', '8 大營養標示、美國 14 大營養標示、含糖量、維生素、礦物質等'],
+  drug: ['西藥成分檢驗', '常見西藥成分 232 項、233 項、320 項、400 項（含減肥藥、壯陽藥成分）等'],
+  ident: ['成分鑑定檢驗', '蕃瀉苷、咖啡因、蘆薈素、多醣體、薑黃素、薑辣素等'],
+  illegal: ['非法食品添加物檢驗', '順丁烯二酸與酸酐、硼酸及其鹽類、甲醛、三聚氰胺、塑化劑、蘇丹紅色素等'],
+  dairy: ['乳品品質檢驗', '乳脂肪含量、乳蛋白質、最低活性可食用發酵菌含量、菌種鑑定等'],
+  marker: ['指標成分檢驗', '咖啡因、總乳酸菌、菌種鑑定、兒茶素等'],
+  pack: ['產品包裝檢驗', '塑化劑、材質試驗、溶出試驗、耐熱試驗等'],
+  plant: ['食品廠環境衛生檢測', '環境衛生檢測、食品衛生稽核服務等'],
+
+  c_micro: ['微生物', '需氧總生菌數、大腸桿菌、綠膿桿菌、金黃色葡萄球菌、沙門氏菌、黴菌、酵母菌、白色念珠菌'],
+  c_metal: ['重金屬', '砷、鉛、鎘、汞、銅、重金屬（以鉛計）'],
+  c_preserv: ['防腐劑', '酸類防腐劑、酯類防腐劑、甲基異噻唑啉酮及甲基氯異噻唑啉酮'],
+  c_plast: ['塑化劑', 'DMP、DEP、DIBP、BBP、DBP、DEHP、DNOP、DINP、DIDP'],
+  c_solvent: ['溶劑', '甲醛、甲醇、乙醇'],
+  c_np: ['環境賀爾蒙', '壬基苯酚、壬基苯酚聚乙氧基醇'],
+  c_banned: ['禁用成分', '常見西藥成分、杜鵑醇、對苯二酚、雌激素 3 項'],
+  c_white: ['美白成分', '維他命 C 四異棕櫚酸酯、維他命 C 磷酸鎂、維他命 C 葡萄糖苷、維他命 A 酸、熊果素'],
+  c_acid: ['酸類', '果酸、醋酸、乳酸、檸檬酸、蘋果酸、水楊酸、pH 值'],
+  c_challenge: ['防腐效能測試（挑戰性試驗）', '可選擇美國藥典 USP<51>、歐洲藥典 EP、ISO 11930 等方法'],
+  c_stab: ['安定性（穩定性）評估', '產品安定性相關試驗'],
+  c_sun: ['防曬', '防曬係數 SPF＋star rating、含藥成分'],
+  c_safety: ['安全性評估', '人體貼膚試驗'],
+  c_func: ['功能性評估', '黑色素、紅色素、水分、彈力、油脂、毛孔、細紋測試等'],
+  c_pfas: ['化粧品 PFAS', 'PFAS 檢測'],
+};
+
+/* 化粧品基礎檢驗套組（官網原文） */
+const KITS = {
+  '一般保養／彩妝': '微生物 5 項、重金屬 4 項、防腐劑 8 項、甲醛含量檢測',
+  '清潔類': '壬基酚或壬基酚聚乙氧基醇類 (NP+NPEO)、雌激素 3 項、防腐劑 8 項',
+  '美白／果酸類': '微生物 5 項、重金屬 4 項、防腐劑 8 項、美白成分、酸類成分、pH 值、對苯二酚',
+  '預防面皰類': '微生物 5 項、重金屬 4 項、防腐劑 8 項、水楊酸、硫含量',
+  '染髮劑': '外觀、鹼度、游離氨、pH 值檢測、染髮劑主成份鑑別及含量檢測',
+  '燙髮劑': '第一劑成分、第二劑成分、過氧化氫 (H2O2)、pH 值',
+  '防曬': '防曬劑主成分鑑別及含量檢測、SPF / Star Rating',
+  '指甲用': '塑化劑 7 項、甲醇含量檢測、甲醛含量檢測',
+  '止汗制臭': '含藥成分鑑別及含量檢測、一般成分鑑別及含量檢測',
+};
+
+/* ---------- 測驗設定 ---------- */
+const QUIZ = {
+  food: [
+    { id: 'role', q: '您是哪一類業者？', opts: ['製造／加工', '輸入業者', '餐飲／現場調製', '品牌商（委託代工）'] },
+    { id: 'type', q: '產品主要是哪一類？', opts: ['一般加工食品', '飲料／包裝水', '蔬果、穀物等農產原料', '肉品／水產／蛋', '乳品', '錠狀、膠囊狀食品', '烘焙／冰品／現調飲料'] },
+    { id: 'goal', q: '這次想解決什麼？（可複選）', multi: true, opts: ['新品上市', '例行自主檢驗', '配方或原料變更', '包材或容器更換', '營養標示／包裝標示', '外銷日本'] },
+  ],
+  cosmetics: [
+    { id: 'role', q: '您是哪一類業者？', opts: ['製造業者', '輸入業者', '品牌商（委託代工）'] },
+    { id: 'type', q: '產品主要是哪一類？', opts: ['一般保養／彩妝', '清潔類', '美白／果酸類', '預防面皰類', '防曬', '染髮劑', '燙髮劑', '指甲用', '止汗制臭', '嬰兒用／唇用／眼部用', '牙膏／漱口水'] },
+    { id: 'goal', q: '這次想解決什麼？（可複選）', multi: true, opts: ['建立或補齊 PIF', '新品上市', '配方或成分變更', '宣稱功效', '例行品質檢驗'] },
+  ],
+};
+
+/* ---------- 建議邏輯 ---------- */
+function adviseFood(a) {
+  const tests = new Map(), laws = new Map(), svc = new Set(), notes = [];
+  const t = (k, why) => { if (!tests.has(k)) tests.set(k, why); };
+  const l = (k) => laws.set(k, R[k]);
+  t('micro', '基本衛生安全'); t('metal', '基本衛生安全'); l('f_a7'); l('f_micro'); l('f_toxin');
+  switch (a.type) {
+    case '飲料／包裝水': t('water', '包裝飲用水'); break;
+    case '蔬果、穀物等農產原料': t('pest', '農產原料'); t('myco', '穀物、堅果、油籽類'); t('gmo', '含黃豆、玉米時'); l('f_pest'); notes.push('含黃豆、玉米原料時，依第 22 條須標示是否含基因改造食品原料。'); break;
+    case '肉品／水產／蛋': t('vet', '動物產品'); l('f_vet'); l('f_apest'); break;
+    case '乳品': t('dairy', '乳品品質'); t('vet', '動物產品'); l('f_vet'); break;
+    case '錠狀、膠囊狀食品': t('drug', '常見非法添加風險'); t('marker', '標示成分佐證'); t('ident', '原料成分確認'); l('f_reg'); svc.add('輸入錠狀、膠囊狀食品查驗登記代辦'); break;
+    case '烘焙／冰品／現調飲料': t('additive', '添加物使用'); l('f_add'); break;
+    default: t('additive', '添加物使用'); t('illegal', '非法添加風險'); l('f_add');
+  }
+  const g = a.goal || [];
+  if (g.includes('新品上市')) { t('nutri', '上市前標示'); t('additive', '添加物使用'); l('f_a22'); l('f_add'); l('f_ad'); svc.add('產品標籤／包裝審查'); svc.add('食品成分審查'); }
+  if (g.includes('例行自主檢驗')) { l('f_a8'); l('f_ghp'); t('plant', '工廠自主管理'); svc.add('食品安心品管：食品安全監測計畫輔導'); notes.push('食品廠環境採樣方式，可參考「檢體採檢方法說明」與採檢教學影片。'); }
+  if (g.includes('配方或原料變更')) { t('additive', '配方變更'); t('illegal', '原料來源變更'); t('ident', '成分確認'); svc.add('食品成分審查'); }
+  if (g.includes('包材或容器更換')) { t('pack', '包材接觸食品'); l('f_a17'); l('f_pack'); }
+  if (g.includes('營養標示／包裝標示')) { t('nutri', '營養標示'); l('f_a22'); svc.add('產品標籤／包裝審查'); notes.push('台美安全家提供「營養標示換算」工具。'); }
+  if (g.includes('外銷日本')) notes.push('台美檢驗已登錄日本厚生勞動省輸出國公共檢驗機關制度 B 類名單（NO. TW20010）。');
+  if (a.role === '輸入業者') l('f_import');
+  if (a.role === '餐飲／現場調製') { t('plant', '作業環境衛生'); svc.add('餐飲衛生管理分級評鑑輔導'); }
+  return { tests: [...tests].map(([k, why]) => ({ k, why })), laws: [...laws.values()], svc: [...svc], notes };
+}
+function pifPhase(type) {
+  if (['防曬', '染髮劑', '燙髮劑', '止汗制臭'].includes(type)) return { d: '113 年 7 月 1 日', who: '第一款：具防曬、染髮、燙髮、止汗制臭等用途之化粧品，以公告附表為準' };
+  if (['嬰兒用／唇用／眼部用', '牙膏／漱口水'].includes(type)) return { d: '114 年 7 月 1 日', who: '第二款：嬰兒用、唇用、眼部用與非藥用牙膏、漱口水' };
+  return { d: '115 年 7 月 1 日', who: '第三款：其他化粧品（免辦工廠登記之固態手工香皂除外）' };
+}
+function adviseCos(a) {
+  const tests = new Map(), laws = new Map(), svc = new Set(), notes = [];
+  const t = (k, why) => { if (!tests.has(k)) tests.set(k, why); };
+  const l = (k) => laws.set(k, R[k]);
+  l('c_a4'); l('c_a6');
+  const typeMap = { '一般保養／彩妝': ['c_micro', 'c_metal', 'c_preserv', 'c_solvent'], '清潔類': ['c_np', 'c_banned', 'c_preserv'], '美白／果酸類': ['c_micro', 'c_metal', 'c_preserv', 'c_white', 'c_acid', 'c_banned'], '預防面皰類': ['c_micro', 'c_metal', 'c_preserv', 'c_acid'], '防曬': ['c_sun', 'c_micro'], '指甲用': ['c_plast', 'c_solvent'], '嬰兒用／唇用／眼部用': ['c_micro', 'c_metal', 'c_preserv'], '牙膏／漱口水': ['c_micro', 'c_metal'] };
+  (typeMap[a.type] || []).forEach((k) => t(k, '產品類型常見項目'));
+  const g = a.goal || [];
+  if (g.includes('建立或補齊 PIF')) { t('c_stab', 'PIF 第 11 款'); t('c_micro', 'PIF 第 12 款'); t('c_challenge', 'PIF 第 13 款'); t('c_func', 'PIF 第 14 款（有宣稱時）'); l('c_pif'); l('c_pifdate'); svc.add('化粧品 PIF 建置代辦'); svc.add('化粧品全成分審查'); }
+  if (g.includes('新品上市')) { l('c_reg'); l('c_a10'); svc.add('化粧品產品登錄代辦'); svc.add('產品標籤／包裝審查'); t('c_safety', '上市前安全性參考'); }
+  if (g.includes('配方或成分變更')) { t('c_banned', '成分變更'); t('c_preserv', '防腐系統變更'); t('c_challenge', '防腐系統變更'); l('c_pif'); svc.add('化粧品全成分審查'); notes.push('PIF 辦法第 3 條：資料有變更者，其檔案應更新之。'); }
+  if (g.includes('宣稱功效')) { t('c_func', '功效佐證'); l('c_a10'); l('c_ad'); }
+  if (g.includes('例行品質檢驗')) { t('c_micro', '例行品質'); t('c_metal', '例行品質'); }
+  if (a.role === '製造業者') { l('c_a8'); l('c_gmp'); notes.push('化粧品 GMP 與 PIF 同樣分三階段實施，115 年 7 月 1 日起涵蓋其餘一般化粧品製造場所（食藥署 2026-05-27 說明）。'); }
+  if (a.role === '輸入業者') l('c_border');
+  const ph = pifPhase(a.type);
+  notes.unshift(`這類產品的 PIF 實施日期：${ph.d}（${ph.who}）。目前已實施，產品上市前就要備妥。`);
+  const kit = KITS[a.type === '嬰兒用／唇用／眼部用' || a.type === '牙膏／漱口水' ? '一般保養／彩妝' : a.type] || null;
+  return { tests: [...tests].map(([k, why]) => ({ k, why })), laws: [...laws.values()], svc: [...svc], notes, kit, kitName: a.type };
+}
+
+/* ---------- 台美能做什麼 ---------- */
+const OFFER = {
+  food: { certs: ['衛福部食藥署（TFDA）認可食品檢驗機構 NO. F005', 'ISO/IEC 17025 認證實驗室', '日本厚生勞動省輸出國公共檢驗機關 B 類登錄 NO. TW20010'], tests: ['micro', 'metal', 'additive', 'pest', 'vet', 'myco', 'nutri', 'drug', 'illegal', 'gmo', 'pack', 'plant'], svc: ['食品成分審查', '產品標籤／包裝審查', '非傳統性食品原料申請', '輸入錠狀、膠囊狀食品查驗登記代辦', '食品安心品管：食品安全監測計畫輔導', '餐飲衛生管理分級評鑑輔導'], page: SITE + '/test-detection-service/food-inspection-2/' },
+  cosmetics: { certs: ['衛福部食藥署（TFDA）藥物化粧品檢驗機構 No. C002', 'TAF GLP、TFDA GLP 認證', 'ISO 17025 認證實驗室'], tests: ['c_micro', 'c_metal', 'c_preserv', 'c_plast', 'c_banned', 'c_white', 'c_acid', 'c_challenge', 'c_sun', 'c_safety', 'c_func', 'c_pfas'], svc: ['化粧品 PIF 建置代辦', '化粧品全成分審查', '化粧品產品登錄代辦', '產品標籤／包裝審查'], page: SITE + '/test-detection-service/cosmetic/' },
+};
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const KIND = { food: '食品', cosmetics: '化粧品' };
+const state = { id: 'food', answers: { food: { goal: [] }, cosmetics: { goal: [] } }, example: { food: false, cosmetics: false }, seen: new Set(), stamped: false };
+const $ = (id) => document.getElementById(id);
+const d = new Date();
+$('sh-date').textContent = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+function renderQs() {
+  const a = state.answers[state.id];
+  $('qs').innerHTML = QUIZ[state.id].map((q, i) => `
+    <div class="q"><div class="q-head"><span class="q-no">${i + 1}/3</span><h2>${esc(q.q.replace('（可複選）', ''))}${q.multi ? ' <small>可複選</small>' : ''}</h2></div>
+    <div class="chips">${q.opts.map((o) => { const on = q.multi ? a[q.id].includes(o) : a[q.id] === o; return `<button type="button" class="chip" data-q="${q.id}" data-o="${esc(o)}" aria-pressed="${on}">${esc(o)}</button>`; }).join('')}</div></div>`).join('');
+  $('qs').querySelectorAll('.chip').forEach((c) => c.addEventListener('click', () => {
+    const q = QUIZ[state.id].find((x) => x.id === c.dataset.q); const o = c.dataset.o;
+    state.example[state.id] = false;
+    if (q.multi) { const arr = a[q.id]; const i = arr.indexOf(o); i >= 0 ? arr.splice(i, 1) : arr.push(o); } else a[q.id] = o;
+    render();
+  }));
+}
+
+function renderSheet() {
+  const a = state.answers[state.id];
+  const done = a.role && a.type && a.goal.length;
+  $('sh-kind').textContent = `${KIND[state.id]}類`;
+  $('example').hidden = !state.example[state.id];
+  const f = (k, v) => `<div><dt>${k}</dt><dd class="${v ? '' : 'empty'}">${v ? esc(v) : '待填'}</dd></div>`;
+  $('fields').innerHTML = f('業者類別', a.role) + f('產品類別', a.type) + f('送驗目的', a.goal.join('、'));
+  $('full').href = OFFER[state.id].page;
+  const stamp = $('stamp');
+  if (!done) {
+    $('body').innerHTML = `<div class="pending">回答完 3 題，這裡會列出建議檢驗類別、法規依據與台美可協助的服務。</div>`;
+    $('actions').innerHTML = `<a class="btn primary" href="${LIFF_FORM}" target="_blank" rel="noopener">直接線上詢價</a>`;
+    stamp.hidden = true; state.stamped = false; $('toast').textContent = '';
+    return;
+  }
+  const r = state.id === 'food' ? adviseFood(a) : adviseCos(a);
+  let n = 0;
+  const isNew = (key) => { const k = state.id + key; const fresh = state.seen.size > 0 && !state.seen.has(k); state.seen.add(k); return fresh ? ' class="new"' : ''; };
+  const rows = [];
+  if (r.kit) rows.push(`<tr class="kit"><td class="no">${String(++n).padStart(2, '0')}</td><td class="name">${esc(r.kitName)}基礎檢驗套組</td><td><small>${esc(r.kit)}</small></td><td class="why"><span>台美套組</span></td></tr>`);
+  r.tests.forEach((x) => { const [nm, ds] = T[x.k]; rows.push(`<tr${isNew('t' + x.k)}><td class="no">${String(++n).padStart(2, '0')}</td><td class="name">${esc(nm)}</td><td><small>${esc(ds)}</small></td><td class="why"><span>${esc(x.why)}</span></td></tr>`); });
+  $('body').innerHTML = `
+    <div class="sec"><h3>一、建議檢驗類別 <span>共 ${n} 項</span></h3>
+      <div class="tbl-wrap"><table><thead><tr><th></th><th>檢驗類別</th><th>常見檢測內容（依官網）</th><th>建議原因</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
+      ${r.notes.length ? `<ul class="notes">${r.notes.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    </div>
+    <div class="sec"><h3>二、法規依據 <span>點名稱看原文</span></h3>
+      <div class="laws">${r.laws.map((l) => `<div class="law"${isNew('l' + l.name)}><a href="${l.url}" target="_blank" rel="noopener">${esc(l.name)}</a><span class="date">${esc(l.date)}</span>${l.quote ? `<q>${esc(l.quote)}</q>` : ''}</div>`).join('')}</div>
+    </div>
+    ${r.svc.length ? `<div class="sec"><h3>三、台美可協助</h3><div class="svc">${r.svc.map((s) => `<span>${esc(s)}</span>`).join('')}</div></div>` : ''}`;
+  $('actions').innerHTML = `<a class="btn primary" id="go" href="${formUrl(r, a)}" target="_blank" rel="noopener">帶入建議單，線上詢價</a><button type="button" class="btn" id="copy">複製建議單</button><button type="button" class="btn" id="line" hidden>傳到 LINE 給客服</button>
+    <div class="howto"><b>按下「帶入建議單，線上詢價」會發生什麼</b><ol><li>在 LINE 開啟台美線上詢價表單（用電腦開啟時，會先請您登入 LINE）。</li><li>信件主旨、產品類別、公司營業項目會自動填好；建議檢驗類別填進「需要檢驗的項目」，其餘建議內容填進「訊息」欄。</li><li>確認產品名稱、補上聯絡資料後送出，專人將於 1-2 個工作天內與您聯繫。</li></ol>
+    <details><summary>預覽會帶入表單的內容</summary><b>需要檢驗的項目</b><pre id="previewTests"></pre><b>訊息</b><pre id="preview"></pre></details></div>`;
+  const text = summary(r, a);
+  $('preview').textContent = formMessage(r, a);
+  $('previewTests').textContent = adviceParams(r, a).tests;
+  $('copy').addEventListener('click', () => copy(text));
+  if (inLine()) { const b = $('line'); b.hidden = false; b.addEventListener('click', () => sendLine(text)); }
+  stamp.hidden = false;
+  if (!state.stamped) { stamp.classList.remove('press'); void stamp.offsetWidth; stamp.classList.add('press'); state.stamped = true; }
+}
+
+/* 台美線上詢價表單（正式版 LIFF）。表單載入 line-addon.js 後，收到 src=advice 參數會自動帶入建議內容。 */
+const LIFF_FORM = 'https://liff.line.me/2011626744-1CaNN63S';
+function adviceParams(r, a) {
+  const tests = [...(r.kit ? [`${r.kitName}基礎檢驗套組`] : []), ...r.tests.map((x) => T[x.k][0])];
+  return { src: 'advice', ind: KIND[state.id], role: a.role, type: a.type, goal: a.goal.join('、'), tests: tests.join('、'), svc: r.svc.join('、') };
+}
+function formUrl(r, a) { return LIFF_FORM + '?' + new URLSearchParams(adviceParams(r, a)).toString(); }
+/* 和表單端組訊息的方式一致，供預覽 */
+function formMessage(r, a) {
+  const p = adviceParams(r, a);
+  return ['【台美檢驗建議單】' + p.ind + '類', '業者類別：' + p.role, '產品類別：' + p.type, '送驗目的：' + p.goal, ...(p.svc ? ['希望協助：' + p.svc] : []), '（以上由檢驗建議單帶入，可自行修改或補充）'].join('\n');
+}
+function summary(r, a) {
+  return [`【台美檢驗建議單｜${KIND[state.id]}】建議日期 ${$('sh-date').textContent}`, `業者類別：${a.role}`, `產品類別：${a.type}`, `送驗目的：${a.goal.join('、')}`, '', '建議檢驗類別：', ...(r.kit ? [`・${r.kitName}基礎檢驗套組：${r.kit}`] : []), ...r.tests.map((x) => '・' + T[x.k][0]), '', '法規依據：', ...r.laws.map((x) => `・${x.name}｜${x.date}`), ...(r.svc.length ? ['', '希望協助：' + r.svc.join('、')] : []), '', '（以上由台美檢驗建議單產生，實際測項與報價請專人評估）'].join('\n');
+}
+function copy(text, okMsg) {
+  const toast = $('toast');
+  const fallback = () => { const ta = document.createElement('textarea'); ta.value = text; ta.rows = 8; ta.readOnly = true; ta.setAttribute('aria-label', '建議單內容'); toast.replaceChildren('這個瀏覽器不允許自動複製，請全選下面的文字後複製，再貼到詢價表單：', ta); ta.focus(); ta.select(); };
+  try { navigator.clipboard.writeText(text).then(() => { toast.textContent = okMsg || '已複製，可以貼到詢價表單或 LINE。'; }, fallback); } catch (e) { fallback(); }
+}
+/* LIFF：放上官網並在 LINE 內開啟時，載入 LIFF SDK 並 liff.init() 後，這個按鈕會出現 */
+function inLine() { try { return !!(window.liff && window.liff.isInClient && window.liff.isInClient()); } catch (e) { return false; } }
+function sendLine(text) { window.liff.sendMessages([{ type: 'text', text }]).then(() => { $('toast').textContent = '已傳到聊天室，客服會接著協助您。'; }, () => { $('toast').textContent = '傳送失敗，請改用「複製建議單」。'; }); }
+
+function render() {
+  ['food', 'cosmetics'].forEach((k) => { const t = $('tab-' + k); if (k === state.id) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
+  renderQs(); renderSheet();
+}
+function route() {
+  const h = location.hash.slice(1);
+  const id = h === 'cosmetics' ? 'cosmetics' : 'food';
+  if (id !== state.id) { state.id = id; state.seen = new Set(); state.stamped = false; }
+  render();
+}
+window.addEventListener('hashchange', route);
+
+// 開場範例：兩個產業都先帶一組範例回答，第一眼就看到填好的建議單
+state.answers.food = { role: '製造／加工', type: '一般加工食品', goal: ['新品上市', '包材或容器更換'] };
+state.answers.cosmetics = { role: '品牌商（委託代工）', type: '防曬', goal: ['建立或補齊 PIF'] };
+state.example = { food: true, cosmetics: true };
+state.id = location.hash === '#cosmetics' ? 'cosmetics' : 'food';
+render();
+})();
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!-- 台美檢驗｜法規通知訂閱頁（LIFF）：放在公司 GitHub 表單 repo 的 subscribe/ 資料夾 -->
+<!-- 上線前把下方設定區的 LIFF_ID 與 GAS_ENDPOINT 換成正式值；兩個都還沒填時會進入「預覽模式」，不會送出任何資料。 -->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>法規通知訂閱 - 台美檢驗</title>
+<style>
+:root {
+  --bg: #F6F1EE; --paper: #FFFDFB; --ink: #3A2318; --muted: #7D6A60; --line: #E6D8D0;
+  --brown: #753F28; --on-brown: #FFFDFB; --pink: #ECAEB0; --pink-soft: #F8E3E3; --ok: #2F7A55; --warn: #9A6A12; --warn-soft: #FBF0D9; --err: #B0413E;
+  --font: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.6; padding-bottom: env(safe-area-inset-bottom, 0px); }
+[hidden] { display: none !important; }
+.preview { background: var(--warn-soft); color: var(--warn); font-size: 13px; text-align: center; padding: 8px 12px; }
+header { background: var(--paper); border-bottom: 4px solid var(--pink); padding: calc(20px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) 18px max(20px, env(safe-area-inset-left, 0px)); }
+.brand { font-size: 12px; letter-spacing: .16em; font-weight: 700; color: var(--brown); }
+h1 { margin: 6px 0 4px; font-size: 24px; line-height: 1.3; color: var(--brown); }
+.hello { font-size: 14px; color: var(--muted); margin: 0; }
+main { padding: 18px max(16px, env(safe-area-inset-right, 0px)) 32px max(16px, env(safe-area-inset-left, 0px)); max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.card h2 { margin: 0; font-size: 17px; }
+.card p { margin: 0; font-size: 14px; color: var(--muted); }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt { display: flex; gap: 12px; align-items: flex-start; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.opt:has(input:checked) { border-color: var(--brown); background: var(--pink-soft); }
+.opt input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--brown); flex: none; }
+.opt b { display: block; font-size: 16px; }
+.opt span { font-size: 13px; color: var(--muted); }
+label.f { font-size: 14px; font-weight: 700; display: flex; flex-direction: column; gap: 6px; }
+label.f small { font-weight: 400; color: var(--muted); }
+input[type=text] { font: inherit; font-size: 16px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+input[type=text]:focus, .opt:focus-within { outline: 3px solid var(--pink); outline-offset: 1px; }
+ul.what { margin: 0; padding-left: 1.2em; font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+.btn { font: inherit; font-size: 17px; font-weight: 700; border: 0; border-radius: 12px; padding: 14px; background: var(--brown); color: var(--on-brown); cursor: pointer; width: 100%; }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn.ghost { background: transparent; color: var(--brown); border: 1.5px solid var(--brown); }
+.status { font-size: 14px; border-radius: 10px; padding: 10px 12px; background: var(--pink-soft); }
+.status.ok { background: #E2F1E8; color: var(--ok); }
+.status.err { background: #F7E1E0; color: var(--err); }
+.done { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.done .mark { width: 64px; height: 64px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; font-size: 34px; }
+.done h2 { margin: 0; font-size: 20px; }
+footer { font-size: 12px; color: var(--muted); text-align: center; padding: 0 16px 24px; }
+</style>
+</head>
+<body>
+<div class="preview" id="previewBar" hidden>預覽模式：LIFF_ID 或 GAS_ENDPOINT 尚未設定，送出不會儲存任何資料。</div>
+<header>
+  <div class="brand">SUPERLAB 台美檢驗</div>
+  <h1>訂閱法規修正通知</h1>
+  <p class="hello" id="hello">選擇您的產業，相關法規一修正就通知您。</p>
+</header>
+
+<main>
+  <div class="status" id="status" role="status" hidden></div>
+
+  <form id="form" novalidate>
+    <div class="card">
+      <h2>您想收到哪些產業的法規通知？</h2>
+      <div class="opts" id="opts"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <label class="f" for="company">公司名稱 <small>選填，方便我們在您詢價時更快對應</small>
+        <input type="text" id="company" name="company" maxlength="60" autocomplete="organization" placeholder="例：台美食品股份有限公司">
+      </label>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>您會收到什麼</h2>
+      <ul class="what">
+        <li>只有相關法規修正時才通知，附法規名稱、修正日期與全國法規資料庫原文連結。</li>
+        <li>不會因為訂閱收到額外的促銷訊息。</li>
+        <li>隨時回到這一頁取消勾選，就不會再收到。</li>
+      </ul>
+    </div>
+
+    <div style="margin-top:16px; display:flex; flex-direction:column; gap:10px">
+      <button class="btn" type="submit" id="save">儲存訂閱設定</button>
+    </div>
+  </form>
+
+  <section class="card done" id="done" hidden>
+    <div class="mark" aria-hidden="true">✓</div>
+    <h2 id="doneTitle">已儲存</h2>
+    <p id="doneText"></p>
+    <button class="btn" type="button" id="close" hidden>回到聊天室</button>
+    <button class="btn ghost" type="button" id="again">修改訂閱</button>
+  </section>
+</main>
+<footer>台美檢驗 SUPERLAB｜衛福部食藥署（TFDA）認可第三方檢驗機構</footer>
+
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+(function () {
+  'use strict';
+  // ====== 設定區 ======
+  const LIFF_ID = '請貼上訂閱頁LIFF_ID';          // LINE Developers →「台美檢驗詢價表單-V2.0」→ LIFF → 新增的訂閱頁
+  const GAS_ENDPOINT = '請貼上服務小幫手網址';   // 服務小幫手部署後、結尾是 /exec 的網址
+  const INDUSTRIES = [
+    { name: '食品', desc: '一般食品、飲料、農產原料、包材、保健食品' },
+    { name: '化粧品', desc: '保養、彩妝、清潔、PIF 相關' },
+  ];
+  // ====================
+
+  const PREVIEW = LIFF_ID.indexOf('請貼上') === 0 || GAS_ENDPOINT.indexOf('請貼上') === 0;
+  const $ = (id) => document.getElementById(id);
+  let idToken = '';
+
+  $('opts').innerHTML = INDUSTRIES.map((x, i) => `<label class="opt" for="ind${i}"><input type="checkbox" id="ind${i}" name="industries" value="${x.name}"><div><b>${x.name}</b><span>${x.desc}</span></div></label>`).join('');
+
+  function showStatus(text, kind) { const s = $('status'); s.hidden = !text; s.textContent = text || ''; s.className = 'status' + (kind ? ' ' + kind : ''); }
+  function setChecked(list) { document.querySelectorAll('input[name=industries]').forEach((el) => { el.checked = list.indexOf(el.value) >= 0; }); }
+  function checked() { return [...document.querySelectorAll('input[name=industries]:checked')].map((el) => el.value); }
+
+  async function call(body, tries) {
+    tries = tries || 3;
+    for (let i = 0; i < tries; i++) {
+      try {
+        const res = await fetch(GAS_ENDPOINT, { method: 'POST', body: JSON.stringify(Object.assign({ idToken: idToken }, body)) });
+        const data = await res.json();
+        if (data.busy && i < tries - 1) { await new Promise((r) => setTimeout(r, 1200 * (i + 1))); continue; }
+        return data;
+      } catch (e) {
+        if (i === tries - 1) throw e;
+        await new Promise((r) => setTimeout(r, 1200 * (i + 1)));
+      }
+    }
+  }
+
+  function showDone(list) {
+    $('form').hidden = true;
+    $('done').hidden = false;
+    $('doneTitle').textContent = list.length ? '訂閱完成' : '已取消訂閱';
+    $('doneText').textContent = list.length ? `之後「${list.join('」「')}」相關法規修正時，會在 LINE 通知您。` : '您不會再收到法規修正通知。需要時隨時回到這一頁重新訂閱。';
+    try { if (window.liff && liff.isInClient()) $('close').hidden = false; } catch (e) {}
+    showStatus('');
+  }
+
+  $('again').addEventListener('click', () => { $('done').hidden = true; $('form').hidden = false; });
+  $('close').addEventListener('click', () => { try { liff.closeWindow(); } catch (e) {} });
+
+  $('form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const list = checked();
+    const company = $('company').value.trim();
+    if (PREVIEW) { showDone(list); showStatus('預覽模式：沒有儲存資料。', ''); return; }
+    const btn = $('save');
+    btn.disabled = true; btn.textContent = '儲存中…';
+    try {
+      const r = await call({ action: 'save', industries: list, company: company });
+      if (r && r.ok) showDone(r.industries || list);
+      else showStatus((r && r.message) || '儲存失敗，請稍後再試。', 'err');
+    } catch (e) {
+      showStatus('網路連線異常，請稍後再試，或直接在 LINE 留言給我們。', 'err');
+    } finally {
+      btn.disabled = false; btn.textContent = '儲存訂閱設定';
+    }
+  });
+
+  async function start() {
+    if (PREVIEW) { $('previewBar').hidden = false; return; }
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
+      idToken = liff.getIDToken() || '';
+      const profile = liff.getDecodedIDToken() || {};
+      if (profile.name) $('hello').textContent = profile.name + ' 您好，選擇您的產業，相關法規一修正就通知您。';
+      showStatus('讀取您目前的訂閱設定…');
+      const r = await call({ action: 'status' });
+      if (r && r.ok) {
+        if (r.sub) {
+          setChecked(INDUSTRIES.map((x) => x.name).filter((n) => r.sub[n] === '✓'));
+          if (r.sub['公司名稱']) $('company').value = r.sub['公司名稱'];
+          showStatus(r.sub['狀態'] === '訂閱中' ? '您目前已訂閱，可以在下面修改。' : '您目前沒有訂閱。', '');
+        } else showStatus('');
+      } else showStatus((r && r.message) || '讀不到訂閱設定，仍可直接勾選後儲存。', 'err');
+    } catch (e) {
+      showStatus('LINE 初始化失敗，請從台美檢驗 LINE 官方帳號重新開啟本頁。', 'err');
+    }
+  }
+  start();
+})();
+</script>
+</body>
+</html>
