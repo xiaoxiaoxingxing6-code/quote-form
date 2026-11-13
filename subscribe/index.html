@@ -33,6 +33,9 @@ main { padding: 18px max(16px, env(safe-area-inset-right, 0px)) 32px max(16px, e
 .opt input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--brown); flex: none; }
 .opt b { display: block; font-size: 16px; }
 .opt span { font-size: 13px; color: var(--muted); }
+.opt em.soon { font-style: normal; font-size: 11px; font-weight: 700; color: var(--warn); background: var(--warn-soft); border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; }
+.other { padding: 0 2px; }
+.other input { width: 100%; }
 label.f { font-size: 14px; font-weight: 700; display: flex; flex-direction: column; gap: 6px; }
 label.f small { font-weight: 400; color: var(--muted); }
 input[type=text] { font: inherit; font-size: 16px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
@@ -55,7 +58,7 @@ footer { font-size: 12px; color: var(--muted); text-align: center; padding: 0 16
 <header>
   <div class="brand">SUPERLAB 台美檢驗</div>
   <h1>訂閱法規修正通知</h1>
-  <p class="hello" id="hello">選擇您的產業，相關法規一修正就通知您。</p>
+  <p class="hello" id="hello">選擇您的產業，相關法規修正時將會通知您。</p>
 </header>
 
 <main>
@@ -77,6 +80,7 @@ footer { font-size: 12px; color: var(--muted); text-align: center; padding: 0 16
       <h2>您會收到什麼</h2>
       <ul class="what">
         <li>只有相關法規修正時才通知，附法規名稱、修正日期與全國法規資料庫原文連結。</li>
+        <li>標示「即將開放」的產業可以先登記，開辦後就會開始通知。</li>
         <li>不會因為訂閱收到額外的促銷訊息。</li>
         <li>隨時回到這一頁取消勾選，就不會再收到。</li>
       </ul>
@@ -104,9 +108,16 @@ footer { font-size: 12px; color: var(--muted); text-align: center; padding: 0 16
   // ====== 設定區 ======
   const LIFF_ID = '2011626744-rkA8wNcL';          // LINE Developers →「台美檢驗詢價表單-V2.0」→ LIFF → 新增的訂閱頁
   const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbz5Dbei8nRgX2YtZexK3wQ5zlBMqtMZWq4awKk16ELwiVJdnPAxHnRcJQTF1dN2_BQ2/exec';   // 服務小幫手部署後、結尾是 /exec 的網址
-  const INDUSTRIES = [
-    { name: '食品', desc: '一般食品、飲料、農產原料、包材、保健食品' },
-    { name: '化粧品', desc: '保養、彩妝、清潔、PIF 相關' },
+  // 產業清單由後台「產業設定」分頁提供；新增產業不用改這個檔案。下面只在預覽模式或讀不到後台時使用。
+  let INDUSTRIES = [
+    { name: '食品', desc: '一般食品、飲料、農產原料、包材', open: true },
+    { name: '保健食品', desc: '膠囊錠狀食品、健康食品', open: false },
+    { name: '寵物食品', desc: '寵物相關食品', open: false },
+    { name: '化粧品', desc: '保養、彩妝、清潔、PIF 相關', open: true },
+    { name: '藥品、再生醫療', desc: '藥品、原料藥、再生醫療製劑', open: false },
+    { name: '醫療器材', desc: '醫療器材', open: false },
+    { name: '化學品', desc: '化學品、清潔劑', open: false },
+    { name: '環境', desc: '環境檢測、飲用水', open: false },
   ];
   // ====================
 
@@ -114,11 +125,26 @@ footer { font-size: 12px; color: var(--muted); text-align: center; padding: 0 16
   const $ = (id) => document.getElementById(id);
   let idToken = '';
 
-  $('opts').innerHTML = INDUSTRIES.map((x, i) => `<label class="opt" for="ind${i}"><input type="checkbox" id="ind${i}" name="industries" value="${x.name}"><div><b>${x.name}</b><span>${x.desc}</span></div></label>`).join('');
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function renderOpts() {
+    const keep = checked();
+    const otherVal = $('otherText') ? $('otherText').value : '';
+    const otherOn = $('indOther') ? $('indOther').checked : false;
+    $('opts').innerHTML = INDUSTRIES.map((x, i) => `<label class="opt" for="ind${i}"><input type="checkbox" id="ind${i}" name="industries" value="${esc(x.name)}"><div><b>${esc(x.name)}${x.open ? '' : ' <em class="soon">即將開放</em>'}</b><span>${esc(x.desc)}</span></div></label>`).join('')
+      + `<label class="opt" for="indOther"><input type="checkbox" id="indOther"><div><b>其他產業</b><span>清單裡沒有您的產業？告訴我們，開辦時優先通知您</span></div></label>`
+      + `<div class="other" id="otherWrap" hidden><input type="text" id="otherText" maxlength="60" placeholder="例：寵物食品、紡織品、玩具" aria-label="其他產業名稱"></div>`;
+    $('indOther').addEventListener('change', () => { $('otherWrap').hidden = !$('indOther').checked; if ($('indOther').checked) $('otherText').focus(); });
+    setChecked(keep);
+    $('otherText').value = otherVal;
+    $('indOther').checked = otherOn;
+    $('otherWrap').hidden = !otherOn;
+  }
 
   function showStatus(text, kind) { const s = $('status'); s.hidden = !text; s.textContent = text || ''; s.className = 'status' + (kind ? ' ' + kind : ''); }
   function setChecked(list) { document.querySelectorAll('input[name=industries]').forEach((el) => { el.checked = list.indexOf(el.value) >= 0; }); }
   function checked() { return [...document.querySelectorAll('input[name=industries]:checked')].map((el) => el.value); }
+  function otherValue() { return $('indOther') && $('indOther').checked ? $('otherText').value.trim() : ''; }
+  renderOpts();
 
   async function call(body, tries) {
     tries = tries || 3;
@@ -135,11 +161,17 @@ footer { font-size: 12px; color: var(--muted); text-align: center; padding: 0 16
     }
   }
 
-  function showDone(list) {
+  function showDone(list, other) {
     $('form').hidden = true;
     $('done').hidden = false;
-    $('doneTitle').textContent = list.length ? '訂閱完成' : '已取消訂閱';
-    $('doneText').textContent = list.length ? `之後「${list.join('」「')}」相關法規修正時，會在 LINE 通知您。` : '您不會再收到法規修正通知。需要時隨時回到這一頁重新訂閱。';
+    const openList = list.filter((n) => (INDUSTRIES.find((x) => x.name === n) || {}).open);
+    const soonList = list.filter((n) => openList.indexOf(n) < 0);
+    if (other) soonList.push(other);
+    $('doneTitle').textContent = list.length || other ? '訂閱完成' : '已取消訂閱';
+    const parts = [];
+    if (openList.length) parts.push(`之後「${openList.join('」「')}」相關法規修正時，會在 LINE 通知您。`);
+    if (soonList.length) parts.push(`「${soonList.join('」「')}」的通知開辦時，會優先通知您。`);
+    $('doneText').textContent = parts.length ? parts.join('') : '您不會再收到法規修正通知。需要時隨時回到這一頁重新訂閱。';
     try { if (window.liff && liff.isInClient()) $('close').hidden = false; } catch (e) {}
     showStatus('');
   }
@@ -150,13 +182,15 @@ footer { font-size: 12px; color: var(--muted); text-align: center; padding: 0 16
   $('form').addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const list = checked();
+    const other = otherValue();
     const company = $('company').value.trim();
-    if (PREVIEW) { showDone(list); showStatus('預覽模式：沒有儲存資料。', ''); return; }
+    if ($('indOther').checked && !other) { showStatus('請填寫其他產業的名稱，或取消勾選「其他產業」。', 'err'); $('otherText').focus(); return; }
+    if (PREVIEW) { showDone(list, other); showStatus('預覽模式：沒有儲存資料。', ''); return; }
     const btn = $('save');
     btn.disabled = true; btn.textContent = '儲存中…';
     try {
-      const r = await call({ action: 'save', industries: list, company: company });
-      if (r && r.ok) showDone(r.industries || list);
+      const r = await call({ action: 'save', industries: list, other: other, company: company });
+      if (r && r.ok) showDone(r.industries || list, r.other || '');
       else showStatus((r && r.message) || '儲存失敗，請稍後再試。', 'err');
     } catch (e) {
       showStatus('網路連線異常，請稍後再試，或直接在 LINE 留言給我們。', 'err');
@@ -176,10 +210,12 @@ footer { font-size: 12px; color: var(--muted); text-align: center; padding: 0 16
       showStatus('讀取您目前的訂閱設定…');
       const r = await call({ action: 'status' });
       if (r && r.ok) {
+        if (Array.isArray(r.industries) && r.industries.length) { INDUSTRIES = r.industries; renderOpts(); }
         if (r.sub) {
-          setChecked(INDUSTRIES.map((x) => x.name).filter((n) => r.sub[n] === '✓'));
-          if (r.sub['公司名稱']) $('company').value = r.sub['公司名稱'];
-          showStatus(r.sub['狀態'] === '訂閱中' ? '您目前已訂閱，可以在下面修改。' : '您目前沒有訂閱。', '');
+          setChecked(r.sub.industries || []);
+          if (r.sub.other) { $('indOther').checked = true; $('otherWrap').hidden = false; $('otherText').value = r.sub.other; }
+          if (r.sub.company) $('company').value = r.sub.company;
+          showStatus(r.sub.status === '訂閱中' ? '您目前已訂閱，可以在下面修改。' : '您目前沒有訂閱。', '');
         } else showStatus('');
       } else showStatus((r && r.message) || '讀不到訂閱設定，仍可直接勾選後儲存。', 'err');
     } catch (e) {
