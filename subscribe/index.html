@@ -111,9 +111,9 @@ footer { font-size: 12px; color: var(--muted); text-align: center; padding: 0 16
   // 產業清單由後台「產業設定」分頁提供；新增產業不用改這個檔案。下面只在預覽模式或讀不到後台時使用。
   let INDUSTRIES = [
     { name: '食品', desc: '一般食品、飲料、農產原料、包材', open: true },
+    { name: '化粧品', desc: '保養、彩妝、清潔、PIF 相關', open: true },
     { name: '保健食品', desc: '膠囊錠狀食品、健康食品', open: false },
     { name: '寵物食品', desc: '寵物相關食品', open: false },
-    { name: '化粧品', desc: '保養、彩妝、清潔、PIF 相關', open: true },
     { name: '藥品、再生醫療', desc: '藥品、原料藥、再生醫療製劑', open: false },
     { name: '醫療器材', desc: '醫療器材', open: false },
     { name: '化學品', desc: '化學品、清潔劑', open: false },
@@ -169,7 +169,7 @@ footer { font-size: 12px; color: var(--muted); text-align: center; padding: 0 16
     if (other) soonList.push(other);
     $('doneTitle').textContent = list.length || other ? '訂閱完成' : '已取消訂閱';
     const parts = [];
-    if (openList.length) parts.push(`之後「${openList.join('」「')}」相關法規修正時，會在 LINE 通知您。`);
+    if (openList.length) parts.push(`未來「${openList.join('」「')}」相關法規修正時，會在 LINE 通知您。`);
     if (soonList.length) parts.push(`「${soonList.join('」「')}」的通知開辦時，會優先通知您。`);
     $('doneText').textContent = parts.length ? parts.join('') : '您不會再收到法規修正通知。需要時隨時回到這一頁重新訂閱。';
     try { if (window.liff && liff.isInClient()) $('close').hidden = false; } catch (e) {}
